@@ -7,9 +7,6 @@ name: Deploy to CapRover
 on:
   push:
     branches: [master]
-    paths:
-      - '**'
-      - '!.github/workflows/deploy-caprover.yml'
 
 jobs:
   deploy:
