@@ -20,7 +20,7 @@ jobs:
 
       - name: Create deploy tarball
         run: |
-          tar --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='dev.db' --exclude='*.db' -czvf deploy.tar .
+          tar --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='dev.db' --exclude='*.db' --exclude='deploy.tar' -czvf deploy.tar .
 
       - name: Deploy to CapRover
         uses: caprover/deploy-from-github@v1.0.1
