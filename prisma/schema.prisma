@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Category {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  productVariants ProductVariant[]
+  optionGroups    OptionGroup[]
+  savedDesigns    SavedDesign[]
+}
+
+model ProductVariant {
+  id          String   @id @default(cuid())
+  categoryId  String
+  imageUrl    String
+  optionValues Json    // e.g. { "color": "green", "size": "M" }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model OptionGroup {
+  id         String   @id @default(cuid())
+  categoryId String
+  type       String   // size | productColor | text | yarnColor | multiColor | icons | font
+  label      String
+  config     Json?    // maxIcons: 2, maxLength: 15, etc.
+  displayOrder Int    @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  optionValues OptionValue[]
+}
+
+model OptionValue {
+  id           String   @id @default(cuid())
+  optionGroupId String
+  label        String
+  value        String   // XS, #hex, imageUrl, fontFamily
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  optionGroup OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+}
+
+model SiteSettings {
+  id                    String   @id @default(cuid())
+  buyLinkUrl            String?
+  buyLinkLabel          String?
+  companyLogoUrl        String?
+  savedDesignExpiryDays Int      @default(30)
+  sectionOrder          String?  // JSON array: ["store","branding","advanced"]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String?  @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  savedDesigns SavedDesign[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model SavedDesign {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  userId        String?
+  categoryId    String
+  customization Json
+  createdAt     DateTime @default(now())
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}

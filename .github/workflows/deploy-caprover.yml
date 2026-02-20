@@ -1,0 +1,30 @@
+# Auto-deploy to CapRover on push to master.
+# Add secrets in repo: Settings → Secrets and variables → Actions
+# Required: CAPROVER_SERVER, CAPROVER_APP_ECOMMERCE, CAPROVER_APP_TOKEN_ECOMMERCE
+
+name: Deploy to CapRover
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '**'
+      - '!.github/workflows/deploy-caprover.yml'
+
+jobs:
+  deploy:
+    name: Deploy App
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create deploy tarball
+        run: |
+          tar --exclude='node_modules' --exclude='.next' --exclude='.git' --exclude='dev.db' --exclude='*.db' -czvf deploy.tar .
+
+      - name: Deploy to CapRover
+        uses: caprover/deploy-from-github@v1.0.1
+        with:
+          server: ${{ secrets.CAPROVER_SERVER }}
+          app: ${{ secrets.CAPROVER_APP_ECOMMERCE }}
+          token: ${{ secrets.CAPROVER_APP_TOKEN_ECOMMERCE }}
